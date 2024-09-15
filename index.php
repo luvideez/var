@@ -1,9 +1,9 @@
 <?php
 // Kết nối đến cơ sở dữ liệu
 $servername = "localhost";
-$username = "database";
+$username = "saoke";
 $password = "";
-$dbname = "database";
+$dbname = "saoke";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
@@ -16,24 +16,65 @@ if ($conn->connect_error) {
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
   $searchTerm = $_POST["searchTerm"];
 
-  // Truy vấn dữ liệu từ cơ sở dữ liệu
-  $sql = "SELECT * FROM saoke WHERE DATE LIKE '%$searchTerm%' OR NOIDUNG LIKE '%$searchTerm%' OR SOTIEN LIKE '%$searchTerm%' OR NAME LIKE '%$searchTerm%'";
-  $result = $conn->query($sql);
-
-  // Hiển thị kết quả tìm kiếm
-  if ($result->num_rows > 0) {
-    echo "<h2>Kết quả tìm kiếm:</h2>";
-    while($row = $result->fetch_assoc()) {
-      echo "<div class='result'>";
-      echo "<span>NGÀY : " . $row["DATE"] . "</span>";
-      echo "<span>NỘI DUNG: " . $row["NOIDUNG"] . "</span>";
-      echo "<span>SỐ TIỀN: " . $row["SOTIEN"] . "</span>";
-      echo "<span>TÊN: " . $row["NAME"] . "</span>";
-      echo "</div>";
-    }
+  // Kiểm tra dữ liệu nhập vào
+  if (empty($searchTerm) || trim($searchTerm) === "") {
+    echo "Vui lòng nhập ít nhất 1 ký tự vào!";
   } else {
-    echo "Không tìm thấy kết quả nào phù hợp!";
+    // Chuyển đổi chữ có dấu thành không dấu, viết hoa thành viết thường
+    $searchTerm = mb_strtolower(removeDiacritics($searchTerm)); 
+
+    // Truy vấn dữ liệu từ cơ sở dữ liệu
+    $sql = "SELECT * FROM saoke WHERE DATE LIKE '%$searchTerm%' OR NOIDUNG LIKE '%$searchTerm%' OR SOTIEN LIKE '%$searchTerm%' OR NAME LIKE '%$searchTerm%'";
+    $result = $conn->query($sql);
+
+    // Hiển thị kết quả tìm kiếm
+    if ($result->num_rows > 0) {
+      echo "<h2>Kết quả tìm kiếm:</h2>";
+      while($row = $result->fetch_assoc()) {
+        echo "<div class='result'>";
+        echo "<span>NGÀY : " . $row["DATE"] . "</span>";
+        echo "<span>NỘI DUNG: " . $row["NOIDUNG"] . "</span>";
+        echo "<span style='color:red;'>SỐ TIỀN:<b> " . $row["SOTIEN"] . "</b></span>"; // Thay đổi màu chữ
+        echo "<span>TÊN: " . $row["NAME"] . "</span>";
+        echo "</div>";
+      }
+    } else {
+      echo "Không tìm thấy kết quả nào phù hợp!";
+    }
   }
+}
+
+// Hàm chuyển đổi chữ có dấu thành không dấu
+function removeDiacritics($string) {
+  $string = str_replace(
+    array('à', 'á', 'ạ', 'ả', 'ã', 'â', 'ầ', 'ấ', 'ậ', 'ẩ', 'ẫ', 'ă', 'ằ', 'ắ', 'ặ', 'ẳ', 'ẵ',
+          'è', 'é', 'ẹ', 'ẻ', 'ẽ', 'ê', 'ề', 'ế', 'ệ', 'ể', 'ễ',
+          'ì', 'í', 'ị', 'ỉ', 'ĩ',
+          'ò', 'ó', 'ọ', 'ỏ', 'õ', 'ô', 'ồ', 'ố', 'ộ', 'ổ', 'ỗ', 'ơ', 'ờ', 'ớ', 'ợ', 'ở', 'ỡ',
+          'ù', 'ú', 'ụ', 'ủ', 'ũ', 'ư', 'ừ', 'ứ', 'ự', 'ử', 'ữ',
+          'ỳ', 'ý', 'ỵ', 'ỷ', 'ỹ',
+          'đ', 'À', 'Á', 'Ạ', 'Ả', 'Ã', 'Â', 'Ầ', 'Ấ', 'Ậ', 'Ẩ', 'Ẫ', 'Ă', 'Ằ', 'Ắ', 'Ặ', 'Ẳ', 'Ẵ',
+          'È', 'É', 'Ẹ', 'Ẻ', 'Ẽ', 'Ê', 'Ề', 'Ế', 'Ệ', 'Ể', 'Ễ',
+          'Ì', 'Í', 'Ị', 'Ỉ', 'Ĩ',
+          'Ò', 'Ó', 'Ọ', 'Ỏ', 'Õ', 'Ô', 'Ồ', 'Ố', 'Ộ', 'Ổ', 'Ỗ', 'Ơ', 'Ờ', 'Ớ', 'Ợ', 'Ở', 'Ỡ',
+          'Ù', 'Ú', 'Ụ', 'Ủ', 'Ũ', 'Ư', 'Ừ', 'Ứ', 'Ự', 'Ử', 'Ữ',
+          'Ỳ', 'Ý', 'Ỵ', 'Ỷ', 'Ỹ',
+          'Đ'),
+    array('a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a',
+          'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e',
+          'i', 'i', 'i', 'i', 'i',
+          'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o',
+          'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u',
+          'y', 'y', 'y', 'y', 'y',
+          'd', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A',
+          'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E',
+          'I', 'I', 'I', 'I', 'I',
+          'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O',
+          'U', 'U', 'U', 'U', 'U', 'U', 'U', 'U', 'U', 'U', 'U',
+          'Y', 'Y', 'Y', 'Y', 'Y',
+          'D'),
+    $string);
+  return $string;
 }
 
 // Form tìm kiếm
@@ -48,7 +89,45 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <?php
 $conn->close();
 ?>
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        #fixed-button {
+            position: fixed; /* Cố định nút */
+            bottom: 20px; /* Khoảng cách từ dưới lên */
+            right: 20px; /* Khoảng cách từ phải sang */
+            width: 100px;
+            height: 40px;
+            background-color: #4CAF50; /* Màu nền */
+            color: white; /* Màu chữ */
+            border-radius: 5px; /* Bo tròn góc */
+            text-align: center; /* Căn giữa chữ */
+            line-height: 40px; /* Căn giữa theo chiều dọc */
+            z-index: 100; /* Nâng nút lên trên các phần tử khác */
+        }
 
+        #fixed-button a {
+            text-decoration: none; /* Loại bỏ gạch chân */
+            color: white; /* Màu chữ */
+            display: block; /* Chiếm toàn bộ diện tích nút */
+            width: 100%;
+            height: 100%;
+        }
+
+        #fixed-button i {
+            margin-right: 5px; /* Khoảng cách giữa icon và chữ */
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div id="fixed-button">
+        <a href="https://ditucogivui.com/var/"><i class="fa-brands fa-searchengin"></i> Tìm Lại</a> </div>
+
+</body>
+</html>
 <style>
 /* Form tìm kiếm */
 form {
